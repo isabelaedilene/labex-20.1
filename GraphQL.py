@@ -2,7 +2,7 @@ from csv import writer
 from json import dumps
 from requests import post
 
-headers = {"Authorization": "token 08c66cd3119fa5ced6a6e21d0e07d879d7c33ddb"}
+headers = {"Authorization": "token"}
 
 
 def run_query(query_):
