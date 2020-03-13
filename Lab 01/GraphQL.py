@@ -1,51 +1,53 @@
 from csv import writer
 from json import dumps
 from requests import post
+import time
 
-headers = {"Authorization": "token"}
+headers = {"Authorization": "token "}
 
-
-def run_query(query_):
+def run_query(query):
     request = post(
-        "https://api.github.com/graphql", json={"query": query_}, headers=headers
+        'https://api.github.com/graphql', json={'query': query}, headers=headers
     )
+    while (request.status_code == 502):
+        time.sleep(2)
+        request = post(
+            'https://api.github.com/graphql', json={'query': query}, headers=headers
+        )
     if request.status_code == 200:
         return request.json()
     else:
-        raise Exception(
-            "Query failed to run by returning code of {}. {}".format(
-                request.status_code, query_
-            )
-        )
+        raise Exception("Query falhou! Codigo de retorno: {}. {}".format(request.status_code, query))
 
 
 query = """
-query example{
-  search(query:"stars:>100", type:REPOSITORY, first:50{AFTER}){
-    pageInfo{
-        hasNextPage
-        endCursor
+query example {
+  search(query: "stars:>100", type: REPOSITORY, first: 50{AFTER}) {
+    pageInfo {
+      hasNextPage
+      endCursor
     }
     nodes {
       ... on Repository {
         nameWithOwner
+        url
         createdAt
         updatedAt
-        pullRequests {
-          totalCount
+        pullRequests(states:MERGED){
+         totalCount
         }
-        releases {
+        totalReleases: releases {
           totalCount
         }
         primaryLanguage {
           name
         }
-        totalIssues: issues{
+        totalIssues: issues {
           totalCount
-        }  
-        totalClosesIssues: issues(states:CLOSED) {
+        }
+        totalClosedIssues: issues(states: CLOSED) {
           totalCount
-        }      
+        }
       }
     }
   }
